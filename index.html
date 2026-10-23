@@ -8,232 +8,130 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
     
-    <!-- FontAwesome icons -->
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Three.js y OrbitControls -->
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        script: ['"Dancing Script"', 'cursive'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        sunflower: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Three.js & OrbitControls -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <!-- GSAP -->
+    <!-- GSAP for smooth load animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
+        /* Custom scrollbars and styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 15, 26, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(251, 191, 36, 0.3);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(251, 191, 36, 0.6);
         }
 
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: #020208;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            color: #fff;
-        }
-
-        #webgl-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-
-        /* UI Overlay */
-        .ui-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 2rem;
-        }
-
-        .header {
-            text-align: center;
-            opacity: 0;
-            transform: translateY(-20px);
-            pointer-events: auto;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 6px 16px;
-            background: rgba(255, 215, 0, 0.12);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            border-radius: 30px;
-            font-size: 0.85rem;
-            color: #ffd700;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            backdrop-filter: blur(8px);
-            margin-bottom: 0.5rem;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
-        }
-
-        .title {
-            font-family: 'Dancing Script', cursive;
-            font-size: 3.2rem;
-            background: linear-gradient(135deg, #fff 30%, #ffd700 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .footer-controls {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            align-items: center;
-            pointer-events: auto;
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        .btn {
-            background: rgba(18, 18, 28, 0.65);
-            border: 1px solid rgba(255, 215, 0, 0.25);
-            color: #fff;
-            padding: 12px 28px;
-            border-radius: 50px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            cursor: pointer;
-            backdrop-filter: blur(12px);
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-        }
-
-        .btn:hover {
-            background: rgba(255, 215, 0, 0.2);
-            border-color: rgba(255, 215, 0, 0.6);
-            transform: translateY(-3px) scale(1.03);
-            box-shadow: 0 12px 30px rgba(255, 215, 0, 0.25);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #ffd700, #ff9100);
-            color: #000;
-            font-weight: 600;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #ffe033, #ffa01a);
-            box-shadow: 0 12px 35px rgba(255, 215, 0, 0.4);
-        }
-
-        /* Overlay de la Carta */
-        .card-modal {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.9);
-            width: 90%;
-            max-width: 500px;
-            max-height: 85vh;
-            overflow-y: auto;
-            background: rgba(12, 12, 20, 0.92);
-            border: 1px solid rgba(255, 215, 0, 0.35);
-            border-radius: 24px;
-            padding: 2.2rem;
+        /* Glassmorphism card styling */
+        .glass-card {
+            background: rgba(15, 18, 30, 0.65);
             backdrop-filter: blur(20px);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.85), 0 0 40px rgba(255, 215, 0, 0.18);
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-align: center;
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 215, 0, 0.22);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(245, 158, 11, 0.12);
         }
 
-        .card-modal.active {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translate(-50%, -50%) scale(1);
+        /* Ambient background gradient */
+        body {
+            background: radial-gradient(circle at 20% 30%, #0d1120 0%, #030408 100%);
+            color: #ffffff;
+            overflow-x: hidden;
         }
 
-        .card-modal h2 {
-            font-family: 'Dancing Script', cursive;
-            font-size: 2.6rem;
-            color: #ffd700;
-            margin-bottom: 1.2rem;
-        }
-
-        .poem-text {
-            font-size: 1.02rem;
-            line-height: 1.85;
-            color: #ececec;
-            margin-bottom: 2rem;
-            font-weight: 300;
-            font-style: italic;
-            white-space: pre-line;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 1.2rem;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 215, 0, 0.15);
-        }
-
-        .close-card {
+        /* Canvas z-index container */
+        #canvas-container {
             position: absolute;
-            top: 15px;
-            right: 20px;
-            background: none;
-            border: none;
-            color: #888;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .close-card:hover { color: #fff; }
-
-        @media (max-width: 768px) {
-            .ui-container { padding: 1.2rem; }
-            .title { font-size: 2.4rem; }
-            .badge { font-size: 0.75rem; }
-            .card-modal { padding: 1.5rem; }
-            .poem-text { font-size: 0.92rem; }
-            .btn { padding: 10px 20px; font-size: 0.88rem; }
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
         }
     </style>
 </head>
-<body>
+<body class="font-sans antialiased min-h-screen">
 
-    <div id="webgl-container"></div>
+    <!-- 3D Canvas Background & Left Anchor -->
+    <div id="canvas-container"></div>
 
-    <div class="ui-container">
-        <div class="header" id="header">
-            <span class="badge">Un detalle especial</span>
-            <h1 class="title">Para Camila 🌻</h1>
-        </div>
+    <!-- Main Split-Screen Container -->
+    <main class="relative z-10 min-h-screen w-full flex flex-col lg:flex-row items-center justify-between p-4 md:p-8 lg:p-12 pointer-events-none">
+        
+        <!-- LEFT COLUMN: Sunflower Space & Header overlay on mobile -->
+        <section class="w-full lg:w-1/2 h-[45vh] lg:h-full flex flex-col justify-between items-center lg:items-start text-center lg:text-left pointer-events-auto select-none py-4">
+            <div id="header-badge" class="opacity-0 -translate-y-6">
+                <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs md:text-sm font-medium uppercase tracking-widest text-amber-300 bg-amber-400/10 border border-amber-400/30 backdrop-blur-md shadow-lg shadow-amber-500/10">
+                    <i class="fa-solid fa-sparkles text-amber-400"></i> Un detalle especial
+                </span>
+                <h1 class="font-script text-4xl sm:text-5xl lg:text-6xl mt-3 text-transparent bg-clip-text bg-gradient-to-r from-white via-amber-100 to-amber-400 drop-shadow-md">
+                    Para Camila 🌻
+                </h1>
+            </div>
 
-        <div class="footer-controls" id="footer">
-            <button class="btn btn-primary" id="btn-card">
-                <i class="fa-solid fa-envelope-open-text"></i> Abrir Carta Secreta
-            </button>
-        </div>
-    </div>
+            <!-- Hint for 3D interaction -->
+            <div id="interaction-hint" class="opacity-0 translate-y-6 mb-4 lg:mb-8 text-amber-200/60 text-xs md:text-sm flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/5">
+                <i class="fa-solid fa-hand-pointer animate-bounce text-amber-400"></i>
+                <span>Arrastra para rotar el girasol 3D</span>
+            </div>
+        </section>
 
-    <!-- Modal de la Carta -->
-    <div class="card-modal" id="cardModal">
-        <button class="close-card" id="btnCloseCard"><i class="fa-solid fa-xmark"></i></button>
-        <h2>Para ti, Camila ✨</h2>
-        <div class="poem-text">
+        <!-- RIGHT COLUMN: Glassmorphism Poem Card -->
+        <section class="w-full lg:w-1/2 max-w-xl my-auto pointer-events-auto">
+            <div id="poem-card" class="glass-card rounded-3xl p-6 sm:p-8 md:p-10 opacity-0 translate-y-8 transition-all duration-500 hover:border-amber-400/40">
+                
+                <!-- Decorative Top Icon -->
+                <div class="flex justify-between items-center mb-6 border-b border-amber-500/15 pb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                        <span class="text-xs uppercase tracking-widest text-amber-300/80 font-semibold">Carta para ti</span>
+                    </div>
+                    <i class="fa-solid fa-heart text-amber-400/80 text-lg"></i>
+                </div>
+
+                <!-- Title -->
+                <h2 class="font-script text-3xl sm:text-4xl text-amber-300 mb-6 text-center lg:text-left">
+                    Girasol de luz ✨
+                </h2>
+
+                <!-- Poem Body -->
+                <div class="poem-content text-gray-200 text-sm sm:text-base md:text-lg leading-relaxed font-light italic space-y-4 whitespace-pre-line text-center sm:text-left bg-black/20 p-5 sm:p-6 rounded-2xl border border-white/5">
 Te conocí y pensé en un girasol:
 quieto, sencillo, mirando hacia afuera,
 sin hacer ruido, sin pedir nada,
@@ -253,22 +151,28 @@ Si un día giras hacia mí,
 me encontrarás aquí, sin más,
 guardando un poco de luz para ti,
 girasol, por si quieres quedarte.
-        </div>
-        <button class="btn btn-primary" style="margin: 0 auto;" id="btnCloseCard2">
-            Guardar con cariño ❤️
-        </button>
-    </div>
+                </div>
 
+                <!-- Card Footer -->
+                <div class="mt-6 pt-4 border-t border-amber-500/15 flex justify-between items-center text-xs text-amber-200/60 font-light">
+                    <span>Hecho con dedicación</span>
+                    <span class="flex items-center gap-1"><i class="fa-solid fa-sun text-amber-400"></i> Siempre buscando la luz</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- THREE.JS 3D SUNFLOWER LOGIC -->
     <script>
-        // --- THREE.JS SETUP ---
-        const container = document.getElementById('webgl-container');
+        // --- 1. SETUP & SCENE CREATION ---
+        const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x020208, 0.03);
+        scene.fog = new THREE.FogExp2(0x030408, 0.025);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 0.8, 6.8);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.shadowMap.enabled = true;
@@ -280,33 +184,47 @@ girasol, por si quieres quedarte.
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        controls.maxPolarAngle = Math.PI / 2 + 0.1;
+        controls.maxPolarAngle = Math.PI / 2 + 0.15;
         controls.minDistance = 3;
-        controls.maxDistance = 11;
-        controls.target.set(0, 0.4, 0);
+        controls.maxDistance = 12;
 
-        // --- ILUMINACIÓN CÁLIDA Y EQUILIBRADA ---
-        const ambientLight = new THREE.AmbientLight(0x282038, 1.8);
+        // Position camera and orbit target dynamically based on split-screen layout
+        function adjustLayoutForScreen() {
+            const isDesktop = window.innerWidth >= 1024;
+            if (isDesktop) {
+                // Focus camera target towards the left half on desktop
+                controls.target.set(-1.3, 0.2, 0);
+                camera.position.set(-1.3, 0.7, 6.2);
+            } else {
+                // Centered target for mobile top half
+                controls.target.set(0, 0.6, 0);
+                camera.position.set(0, 1.0, 6.8);
+            }
+        }
+        adjustLayoutForScreen();
+
+        // --- 2. LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0x2d2538, 1.8);
         scene.add(ambientLight);
 
-        const mainLight = new THREE.DirectionalLight(0xfff0b8, 2.5);
-        mainLight.position.set(5, 8, 5);
+        const mainLight = new THREE.DirectionalLight(0xfff0c2, 2.6);
+        mainLight.position.set(4, 7, 5);
         mainLight.castShadow = true;
         mainLight.shadow.mapSize.width = 2048;
         mainLight.shadow.mapSize.height = 2048;
         scene.add(mainLight);
 
-        const rimLight = new THREE.PointLight(0xffaa00, 3, 10);
-        rimLight.position.set(-4, 3, -3);
+        const rimLight = new THREE.PointLight(0xffb700, 3.2, 12);
+        rimLight.position.set(-5, 4, -3);
         scene.add(rimLight);
 
-        const centerGlowLight = new THREE.PointLight(0xffd700, 1.8, 4);
-        centerGlowLight.position.set(0, 1.2, 0.5);
-        scene.add(centerGlowLight);
+        const centerLight = new THREE.PointLight(0xffd700, 1.5, 4);
+        centerLight.position.set(0, 1.2, 0.5);
+        scene.add(centerLight);
 
-        // --- FONDO DE ESTRELLAS TITILANTES ---
+        // --- 3. BACKGROUND STARS & FLOATING POLLEN ---
         function createStarfield() {
-            const starCount = 3000;
+            const starCount = 2500;
             const geometry = new THREE.BufferGeometry();
             const positions = new Float32Array(starCount * 3);
 
@@ -317,40 +235,36 @@ girasol, por si quieres quedarte.
             }
 
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
             const material = new THREE.PointsMaterial({
                 color: 0xffffff,
                 size: 0.055,
                 transparent: true,
-                opacity: 0.85,
+                opacity: 0.8,
                 blending: THREE.AdditiveBlending
             });
-
             const starField = new THREE.Points(geometry, material);
             scene.add(starField);
             return starField;
         }
         const stars = createStarfield();
 
-        // --- PARTICULAS DE POLEN FLOTANTES ---
         function createFloatingPollen() {
-            const count = 700;
+            const count = 650;
             const geometry = new THREE.BufferGeometry();
             const positions = new Float32Array(count * 3);
             const speeds = [];
 
             for (let i = 0; i < count; i++) {
-                positions[i * 3] = (Math.random() - 0.5) * 10;
-                positions[i * 3 + 1] = Math.random() * 6 - 2;
-                positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
+                positions[i * 3] = (Math.random() - 0.5) * 12;
+                positions[i * 3 + 1] = Math.random() * 8 - 3;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 12;
                 speeds.push({
-                    y: Math.random() * 0.004 + 0.002,
+                    y: Math.random() * 0.003 + 0.0015,
                     radius: Math.random() * 0.008
                 });
             }
 
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
             const material = new THREE.PointsMaterial({
                 color: 0xffd700,
                 size: 0.038,
@@ -358,27 +272,35 @@ girasol, por si quieres quedarte.
                 opacity: 0.65,
                 blending: THREE.AdditiveBlending
             });
-
             const particles = new THREE.Points(geometry, material);
             scene.add(particles);
             return { mesh: particles, speeds: speeds };
         }
         const pollen = createFloatingPollen();
 
-        // --- MODELADO REALISTA DEL GIRASOL ---
+        // --- 4. REALISTIC 3D SUNFLOWER MODELING ---
         const sunflowerGroup = new THREE.Group();
-        sunflowerGroup.position.set(0, -0.6, 0); // Centrado ajustado
+        
+        // Base positioning according to desktop vs mobile layout
+        function updateSunflowerPosition() {
+            if (window.innerWidth >= 1024) {
+                sunflowerGroup.position.set(-1.3, -0.7, 0);
+            } else {
+                sunflowerGroup.position.set(0, 0.1, 0);
+            }
+        }
+        updateSunflowerPosition();
         scene.add(sunflowerGroup);
 
-        // 1. Tallo
+        // A) Stem
         const stemCurve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(0, -2.0, 0),
-            new THREE.Vector3(0.1, -0.9, 0.06),
-            new THREE.Vector3(-0.06, 0.4, -0.03),
-            new THREE.Vector3(0, 1.7, 0)
+            new THREE.Vector3(0, -2.2, 0),
+            new THREE.Vector3(0.08, -1.0, 0.05),
+            new THREE.Vector3(-0.05, 0.4, -0.02),
+            new THREE.Vector3(0, 1.6, 0)
         ]);
 
-        const stemGeometry = new THREE.TubeGeometry(stemCurve, 64, 0.042, 16, false);
+        const stemGeometry = new THREE.TubeGeometry(stemCurve, 64, 0.045, 16, false);
         const stemMaterial = new THREE.MeshStandardMaterial({
             color: 0x325e20,
             roughness: 0.6,
@@ -389,7 +311,7 @@ girasol, por si quieres quedarte.
         stem.receiveShadow = true;
         sunflowerGroup.add(stem);
 
-        // 2. Hojas
+        // B) Leaves
         function createLeaf(isLeft) {
             const shape = new THREE.Shape();
             shape.moveTo(0, 0);
@@ -414,7 +336,7 @@ girasol, por si quieres quedarte.
                 leaf.position.set(-0.22, -0.2, 0);
                 leaf.rotation.set(0.2, -0.3, 0.5);
             } else {
-                leaf.position.set(0.22, 0.5, 0);
+                leaf.position.set(0.22, 0.4, 0);
                 leaf.rotation.set(-0.2, 0.3, -0.5);
             }
             leaf.castShadow = true;
@@ -423,13 +345,13 @@ girasol, por si quieres quedarte.
         sunflowerGroup.add(createLeaf(true));
         sunflowerGroup.add(createLeaf(false));
 
-        // 3. Cabeza de la Flor
+        // C) Flower Head
         const flowerHeadGroup = new THREE.Group();
-        flowerHeadGroup.position.set(0, 1.7, 0.04);
-        flowerHeadGroup.rotation.x = 0.20;
+        flowerHeadGroup.position.set(0, 1.6, 0.04);
+        flowerHeadGroup.rotation.x = 0.22;
         sunflowerGroup.add(flowerHeadGroup);
 
-        // Cáliz / Sépalos únicamente en la parte posterior
+        // Receptacle / Sepals
         const receptacleGeo = new THREE.CylinderGeometry(0.72, 0.25, 0.2, 32);
         const receptacleMat = new THREE.MeshStandardMaterial({ color: 0x274a19, roughness: 0.7 });
         const receptacle = new THREE.Mesh(receptacleGeo, receptacleMat);
@@ -449,7 +371,7 @@ girasol, por si quieres quedarte.
             flowerHeadGroup.add(sepal);
         }
 
-        // Disco Central Suave (Aterciopelado)
+        // Velvet Central Disc
         const centerGeometry = new THREE.CylinderGeometry(0.75, 0.72, 0.08, 64);
         const centerMaterial = new THREE.MeshStandardMaterial({
             color: 0x221103,
@@ -460,7 +382,7 @@ girasol, por si quieres quedarte.
         centerDisc.rotation.x = Math.PI / 2;
         flowerHeadGroup.add(centerDisc);
 
-        // Semillas en Espiral de Fibonacci
+        // Fibonacci Seeds
         const seedGeo = new THREE.SphereGeometry(0.016, 8, 8);
         const seedMat = new THREE.MeshStandardMaterial({ color: 0x180b02, roughness: 0.9 });
         const seedInstanced = new THREE.InstancedMesh(seedGeo, seedMat, 500);
@@ -478,7 +400,7 @@ girasol, por si quieres quedarte.
         }
         flowerHeadGroup.add(seedInstanced);
 
-        // Anillo de mini flósculos dorados
+        // Golden Inner Rim Florets
         const rimFloretGeo = new THREE.SphereGeometry(0.02, 8, 8);
         const rimFloretMat = new THREE.MeshStandardMaterial({ color: 0xd4a017, roughness: 0.6 });
         const rimFloretInstanced = new THREE.InstancedMesh(rimFloretGeo, rimFloretMat, 80);
@@ -492,7 +414,7 @@ girasol, por si quieres quedarte.
         }
         flowerHeadGroup.add(rimFloretInstanced);
 
-        // 4. Pétalos Orgánicos Suaves Curvados
+        // Organic Curving Petals Geometry
         function createSmoothPetalGeometry() {
             const geom = new THREE.BufferGeometry();
             const widthSegs = 6;
@@ -549,7 +471,7 @@ girasol, por si quieres quedarte.
             side: THREE.DoubleSide
         });
 
-        // Capa Exterior de Pétalos
+        // Outer Layer Petals
         const outerPetalsCount = 36;
         for (let i = 0; i < outerPetalsCount; i++) {
             const angle = (i / outerPetalsCount) * Math.PI * 2;
@@ -565,7 +487,7 @@ girasol, por si quieres quedarte.
             flowerHeadGroup.add(petal);
         }
 
-        // Capa Interior de Pétalos
+        // Inner Layer Petals
         const innerPetalsCount = 30;
         for (let i = 0; i < innerPetalsCount; i++) {
             const angle = (i / innerPetalsCount) * Math.PI * 2 + 0.08;
@@ -580,30 +502,30 @@ girasol, por si quieres quedarte.
             flowerHeadGroup.add(petal);
         }
 
-        // --- BUCLE DE RENDERIZADO Y ANIMACIONES ---
+        // --- 5. RENDER LOOP & ANIMATION ---
         let clock = new THREE.Clock();
 
         function animate() {
             requestAnimationFrame(animate);
             const time = clock.getElapsedTime();
 
-            // Oscilación suave por la brisa
+            // Gentle breeze sway
             sunflowerGroup.rotation.z = Math.sin(time * 0.8) * 0.025;
             sunflowerGroup.rotation.x = Math.cos(time * 0.6) * 0.018;
 
-            // Movimiento del polen
+            // Pollen animation
             const pos = pollen.mesh.geometry.attributes.position.array;
             for (let i = 0; i < pollen.speeds.length; i++) {
                 pos[i * 3 + 1] += pollen.speeds[i].y;
                 pos[i * 3] += Math.sin(time + i) * pollen.speeds[i].radius;
 
                 if (pos[i * 3 + 1] > 5) {
-                    pos[i * 3 + 1] = -2;
+                    pos[i * 3 + 1] = -3;
                 }
             }
             pollen.mesh.geometry.attributes.position.needsUpdate = true;
 
-            stars.rotation.y = time * 0.005;
+            stars.rotation.y = time * 0.004;
 
             controls.update();
             renderer.render(scene, camera);
@@ -611,26 +533,21 @@ girasol, por si quieres quedarte.
 
         animate();
 
-        // --- EVENTOS E INTERFAZ ---
-        gsap.to('#header', { opacity: 1, y: 0, duration: 1.2, delay: 0.5, ease: 'power3.out' });
-        gsap.to('#footer', { opacity: 1, y: 0, duration: 1.2, delay: 0.8, ease: 'power3.out' });
+        // --- 6. INTRO ANIMATIONS WITH GSAP ---
+        window.addEventListener('load', () => {
+            gsap.to('#header-badge', { opacity: 1, y: 0, duration: 1.2, delay: 0.3, ease: 'power3.out' });
+            gsap.to('#interaction-hint', { opacity: 1, y: 0, duration: 1.2, delay: 0.6, ease: 'power3.out' });
+            gsap.to('#poem-card', { opacity: 1, y: 0, duration: 1.4, delay: 0.5, ease: 'power3.out' });
+        });
 
-        const cardModal = document.getElementById('cardModal');
-        const btnCard = document.getElementById('btn-card');
-        const btnClose1 = document.getElementById('btnCloseCard');
-        const btnClose2 = document.getElementById('btnCloseCard2');
-
-        function openCard() { cardModal.classList.add('active'); }
-        function closeCard() { cardModal.classList.remove('active'); }
-
-        btnCard.addEventListener('click', openCard);
-        btnClose1.addEventListener('click', closeCard);
-        btnClose2.addEventListener('click', closeCard);
-
+        // --- 7. RESPONSIVE RESIZE HANDLING ---
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            
+            adjustLayoutForScreen();
+            updateSunflowerPosition();
         });
     </script>
 </body>
