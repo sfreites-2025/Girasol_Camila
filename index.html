@@ -16,8 +16,6 @@
     <!-- Three.js and OrbitControls -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <!-- Canvas Confetti -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <!-- GSAP for UI Animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 
@@ -214,7 +212,7 @@
     <div class="ui-container">
         <div class="header" id="header">
             <span class="badge">Un detalle especial</span>
-            <h1 class="title">Un Girasol Para Ti</h1>
+            <h1 class="title">Para Camila 🌻</h1>
         </div>
 
         <div class="footer-controls" id="footer">
@@ -233,7 +231,7 @@
         <h2>Para la chica más bonita ✨</h2>
         <p>
             Dicen que los girasoles buscan siempre la luz del sol para brillar... 
-            Bueno, este girasol en 3D lo creé para ti, porque tú eres la persona que ilumina mi día a día. 
+            Bueno, Camila, este girasol en 3D lo creé para ti, porque tú eres la persona que ilumina mi día a día. 
             ¡Espero que te saque una bonita sonrisa! 🌻💛
         </p>
         <button class="btn btn-primary" style="margin: 0 auto;" id="btnCloseCard2">
@@ -351,56 +349,108 @@
         }
         const pollen = createFloatingPollen();
 
-        // --- CONSTRUCCIÓN DEL GIRASOL 3D ---
+        // --- SISTEMA 3D DE ESTRELLAS FUGACES (LLUVIA ESTELAR) ---
+        const shootingStarsGroup = new THREE.Group();
+        scene.add(shootingStarsGroup);
+        const activeShootingStars = [];
+
+        function spawnShootingStar() {
+            const geometry = new THREE.BufferGeometry();
+            const points = [];
+            
+            const startX = (Math.random() - 0.2) * 15 + 2;
+            const startY = Math.random() * 5 + 6;
+            const startZ = (Math.random() - 0.5) * 10 - 2;
+
+            const length = 1.8;
+            const dir = new THREE.Vector3(-1, -0.6, 0.2).normalize();
+
+            points.push(new THREE.Vector3(startX, startY, startZ));
+            points.push(new THREE.Vector3(startX, startY, startZ).sub(dir.clone().multiplyScalar(length)));
+
+            geometry.setFromPoints(points);
+
+            const material = new THREE.LineBasicMaterial({
+                color: 0xfff4b8,
+                transparent: true,
+                opacity: 1,
+                linewidth: 2,
+                blending: THREE.AdditiveBlending
+            });
+
+            const star = new THREE.Line(geometry, material);
+            star.userData = {
+                dir: dir,
+                speed: Math.random() * 0.35 + 0.25,
+                life: 1.0
+            };
+
+            shootingStarsGroup.add(star);
+            activeShootingStars.push(star);
+        }
+
+        function triggerStarShower() {
+            for (let i = 0; i < 25; i++) {
+                setTimeout(() => {
+                    spawnShootingStar();
+                }, i * 120);
+            }
+
+            // Impulso de iluminación en la escena
+            gsap.to(centerGlowLight, { intensity: 3.5, duration: 0.5, yoyo: true, repeat: 1 });
+            gsap.to(rimLight, { intensity: 5, duration: 0.5, yoyo: true, repeat: 1 });
+        }
+
+        // --- CONSTRUCCIÓN DEL GIRASOL 3D REALISTA ---
         const sunflowerGroup = new THREE.Group();
         scene.add(sunflowerGroup);
 
-        // 1. Tallo Orgánico Curvado Fino
+        // 1. Tallo Orgánico Fino y Natural
         const stemCurve = new THREE.CatmullRomCurve3([
             new THREE.Vector3(0, -2.5, 0),
-            new THREE.Vector3(0.15, -1.2, 0.1),
-            new THREE.Vector3(-0.1, 0.3, -0.05),
+            new THREE.Vector3(0.12, -1.2, 0.08),
+            new THREE.Vector3(-0.08, 0.3, -0.04),
             new THREE.Vector3(0, 1.8, 0)
         ]);
 
-        const stemGeometry = new THREE.TubeGeometry(stemCurve, 64, 0.045, 16, false);
+        const stemGeometry = new THREE.TubeGeometry(stemCurve, 64, 0.042, 16, false);
         const stemMaterial = new THREE.MeshStandardMaterial({
             color: 0x2e5a1c,
-            roughness: 0.6,
-            metalness: 0.1
+            roughness: 0.65,
+            metalness: 0.05
         });
         const stem = new THREE.Mesh(stemGeometry, stemMaterial);
         stem.castShadow = true;
         stem.receiveShadow = true;
         sunflowerGroup.add(stem);
 
-        // 2. Hojas Finitas del Tallo
+        // 2. Hojas del Tallo con Nervaduras
         function createLeaf(isLeft) {
             const shape = new THREE.Shape();
             shape.moveTo(0, 0);
-            shape.quadraticCurveTo(0.4, 0.3, 0.8, 0.1);
-            shape.quadraticCurveTo(1.2, -0.2, 1.5, -0.6);
-            shape.quadraticCurveTo(0.7, -0.8, 0, 0);
+            shape.quadraticCurveTo(0.35, 0.25, 0.7, 0.1);
+            shape.quadraticCurveTo(1.1, -0.15, 1.35, -0.5);
+            shape.quadraticCurveTo(0.6, -0.7, 0, 0);
 
-            const extrudeSettings = { depth: 0.01, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.01, bevelThickness: 0.01 };
+            const extrudeSettings = { depth: 0.008, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.008, bevelThickness: 0.008 };
             const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
             geometry.center();
 
             const leafMaterial = new THREE.MeshStandardMaterial({
-                color: 0x3a6b24,
-                roughness: 0.5,
+                color: 0x386822,
+                roughness: 0.55,
                 side: THREE.DoubleSide
             });
 
             const leaf = new THREE.Mesh(geometry, leafMaterial);
-            leaf.scale.set(0.7, 0.7, 0.7);
+            leaf.scale.set(0.65, 0.65, 0.65);
             
             if (isLeft) {
-                leaf.position.set(-0.25, -0.2, 0);
-                leaf.rotation.set(0.2, -0.4, 0.6);
+                leaf.position.set(-0.22, -0.2, 0);
+                leaf.rotation.set(0.2, -0.3, 0.5);
             } else {
-                leaf.position.set(0.25, 0.5, 0);
-                leaf.rotation.set(-0.2, 0.4, -0.6);
+                leaf.position.set(0.22, 0.5, 0);
+                leaf.rotation.set(-0.2, 0.3, -0.5);
             }
             leaf.castShadow = true;
             return leaf;
@@ -411,11 +461,24 @@
         // 3. Cabeza del Girasol (Flor)
         const flowerHeadGroup = new THREE.Group();
         flowerHeadGroup.position.set(0, 1.8, 0.05);
-        flowerHeadGroup.rotation.x = 0.25; // Ligera inclinación elegante hacia arriba
+        flowerHeadGroup.rotation.x = 0.25;
         sunflowerGroup.add(flowerHeadGroup);
 
+        // Base/Sépalos Verdes detrás de la flor
+        const sepalCount = 20;
+        const sepalGeo = new THREE.ConeGeometry(0.08, 0.4, 4);
+        const sepalMat = new THREE.MeshStandardMaterial({ color: 0x2e5a1c, roughness: 0.7 });
+        for (let i = 0; i < sepalCount; i++) {
+            const angle = (i / sepalCount) * Math.PI * 2;
+            const sepal = new THREE.Mesh(sepalGeo, sepalMat);
+            sepal.position.set(Math.cos(angle) * 0.68, Math.sin(angle) * 0.68, -0.06);
+            sepal.rotation.z = angle - Math.PI / 2;
+            sepal.rotation.x = -0.4;
+            flowerHeadGroup.add(sepal);
+        }
+
         // Disco Central (Fibonacci Spiral Florets)
-        const centerGeometry = new THREE.CylinderGeometry(0.75, 0.7, 0.12, 32);
+        const centerGeometry = new THREE.CylinderGeometry(0.72, 0.68, 0.1, 32);
         const centerMaterial = new THREE.MeshStandardMaterial({
             color: 0x2b1704,
             roughness: 0.9,
@@ -425,35 +488,34 @@
         centerDisc.rotation.x = Math.PI / 2;
         flowerHeadGroup.add(centerDisc);
 
-        // Detalle Texturizado del Centro
-        const pylonGeo = new THREE.SphereGeometry(0.02, 6, 6);
-        const pylonMat = new THREE.MeshStandardMaterial({ color: 0x1a0d02, roughness: 0.8 });
-        const pylonInstanced = new THREE.InstancedMesh(pylonGeo, pylonMat, 400);
+        // Semillas en Espiral de Fibonacci
+        const pylonGeo = new THREE.SphereGeometry(0.018, 6, 6);
+        const pylonMat = new THREE.MeshStandardMaterial({ color: 0x1c0e02, roughness: 0.85 });
+        const pylonInstanced = new THREE.InstancedMesh(pylonGeo, pylonMat, 450);
 
         const dummy = new THREE.Object3D();
-        const phi = (1 + Math.sqrt(5)) / 2; // Golden Ratio
-        for (let i = 0; i < 400; i++) {
-            const r = (Math.sqrt(i) / Math.sqrt(400)) * 0.7;
+        const phi = (1 + Math.sqrt(5)) / 2;
+        for (let i = 0; i < 450; i++) {
+            const r = (Math.sqrt(i) / Math.sqrt(450)) * 0.68;
             const theta = i * 2 * Math.PI / (phi * phi);
             
-            dummy.position.set(r * Math.cos(theta), r * Math.sin(theta), 0.06);
-            dummy.scale.setScalar(0.8 + Math.random() * 0.4);
+            dummy.position.set(r * Math.cos(theta), r * Math.sin(theta), 0.05);
+            dummy.scale.setScalar(0.75 + Math.random() * 0.35);
             dummy.updateMatrix();
             pylonInstanced.setMatrixAt(i, dummy.matrix);
         }
         flowerHeadGroup.add(pylonInstanced);
 
-        // 4. Pétalos Dorados Perfeccionados
+        // 4. Pétalos Dorados
         function createPetalGeometry() {
             const geom = new THREE.BufferGeometry();
-            // Geometría curva y fina de un pétalo
             const vertices = new Float32Array([
                 0, 0, 0,
-                0.12, 0.4, 0.03,
-                0.16, 0.9, 0.05,
-                0, 1.4, 0.02,
-                -0.16, 0.9, 0.05,
-                -0.12, 0.4, 0.03
+                0.11, 0.4, 0.03,
+                0.15, 0.9, 0.05,
+                0, 1.35, 0.02,
+                -0.15, 0.9, 0.05,
+                -0.11, 0.4, 0.03
             ]);
             const indices = [
                 0, 1, 5,
@@ -481,15 +543,15 @@
             side: THREE.DoubleSide
         });
 
-        // Capa Exterior de Pétalos
+        // Capa Exterior
         const outerPetalsCount = 34;
         for (let i = 0; i < outerPetalsCount; i++) {
             const angle = (i / outerPetalsCount) * Math.PI * 2;
             const petal = new THREE.Mesh(petalGeometry, petalMaterial);
             
-            petal.position.set(Math.cos(angle) * 0.72, Math.sin(angle) * 0.72, 0);
+            petal.position.set(Math.cos(angle) * 0.68, Math.sin(angle) * 0.68, 0);
             petal.rotation.z = angle - Math.PI / 2;
-            petal.rotation.x = 0.15 + (Math.random() * 0.05); // Ligeramente doblado hacia adelante
+            petal.rotation.x = 0.15 + (Math.random() * 0.05);
             petal.rotation.y = (Math.random() - 0.5) * 0.1;
             petal.scale.set(1, 0.9 + Math.random() * 0.2, 1);
             
@@ -497,13 +559,13 @@
             flowerHeadGroup.add(petal);
         }
 
-        // Capa Interior de Pétalos
+        // Capa Interior
         const innerPetalsCount = 28;
         for (let i = 0; i < innerPetalsCount; i++) {
             const angle = (i / innerPetalsCount) * Math.PI * 2 + 0.1;
             const petal = new THREE.Mesh(petalGeometry, petalMaterialInner);
             
-            petal.position.set(Math.cos(angle) * 0.62, Math.sin(angle) * 0.62, 0.02);
+            petal.position.set(Math.cos(angle) * 0.58, Math.sin(angle) * 0.58, 0.02);
             petal.rotation.z = angle - Math.PI / 2;
             petal.rotation.x = 0.25 + (Math.random() * 0.05);
             petal.scale.set(0.85, 0.8 + Math.random() * 0.15, 0.85);
@@ -512,31 +574,55 @@
             flowerHeadGroup.add(petal);
         }
 
-        // --- ANIMACIÓN & BUCLE DE RENDERIZADO ---
+        // --- BUCLE DE RENDERIZADO Y ANIMACIÓN ---
         let clock = new THREE.Clock();
 
         function animate() {
             requestAnimationFrame(animate);
             const time = clock.getElapsedTime();
 
-            // Balanceo suave del girasol (Brisa)
+            // Balanceo por la brisa
             sunflowerGroup.rotation.z = Math.sin(time * 0.8) * 0.03;
             sunflowerGroup.rotation.x = Math.cos(time * 0.6) * 0.02;
 
-            // Animación de Polen Flotante
+            // Polen Flotante
             const pos = pollen.mesh.geometry.attributes.position.array;
             for (let i = 0; i < pollen.speeds.length; i++) {
                 pos[i * 3 + 1] += pollen.speeds[i].y;
                 pos[i * 3] += Math.sin(time + i) * pollen.speeds[i].radius;
 
-                // Reiniciar partículas al llegar arriba
                 if (pos[i * 3 + 1] > 5) {
                     pos[i * 3 + 1] = -1;
                 }
             }
             pollen.mesh.geometry.attributes.position.needsUpdate = true;
 
-            // Rotación sutil de estrellas
+            // Animación de Estrellas Fugaces
+            for (let i = activeShootingStars.length - 1; i >= 0; i--) {
+                const star = activeShootingStars[i];
+                const positions = star.geometry.attributes.position.array;
+
+                // Mover cabeza y cola
+                const moveVec = star.userData.dir.clone().multiplyScalar(star.userData.speed);
+                positions[0] += moveVec.x;
+                positions[1] += moveVec.y;
+                positions[2] += moveVec.z;
+
+                positions[3] += moveVec.x * 0.9;
+                positions[4] += moveVec.y * 0.9;
+                positions[5] += moveVec.z * 0.9;
+
+                star.geometry.attributes.position.needsUpdate = true;
+
+                star.userData.life -= 0.02;
+                star.material.opacity = star.userData.life;
+
+                if (star.userData.life <= 0) {
+                    shootingStarsGroup.remove(star);
+                    activeShootingStars.splice(i, 1);
+                }
+            }
+
             stars.rotation.y = time * 0.005;
 
             controls.update();
@@ -545,12 +631,10 @@
 
         animate();
 
-        // --- INTERACCIONES DE INTERFAZ ---
-        // Animación de entrada
+        // --- INTERFAZ E INTERACCIONES ---
         gsap.to('#header', { opacity: 1, y: 0, duration: 1.2, delay: 0.5, ease: 'power3.out' });
         gsap.to('#footer', { opacity: 1, y: 0, duration: 1.2, delay: 0.8, ease: 'power3.out' });
 
-        // Modal de la Carta
         const cardModal = document.getElementById('cardModal');
         const btnCard = document.getElementById('btn-card');
         const btnClose1 = document.getElementById('btnCloseCard');
@@ -563,20 +647,10 @@
         btnClose1.addEventListener('click', closeCard);
         btnClose2.addEventListener('click', closeCard);
 
-        // Lluvia Estelar / Confeti Dorado
-        document.getElementById('btn-magic').addEventListener('click', () => {
-            confetti({
-                particleCount: 80,
-                spread: 100,
-                origin: { y: 0.8 },
-                colors: ['#ffd700', '#ffa500', '#ffffff', '#ff8c00']
-            });
+        // Acción del botón Lluvia Estelar
+        document.getElementById('btn-magic').addEventListener('click', triggerStarShower);
 
-            // Pequeño impulso de luz
-            gsap.to(centerGlowLight, { intensity: 4, duration: 0.3, yoyo: true, repeat: 1 });
-        });
-
-        // Redimensionamiento Responsivo
+        // Redimensionamiento
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
